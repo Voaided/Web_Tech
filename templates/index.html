@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Downloader and Search</title>
+    <script>
+        async function submitDownloadForm(event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+            const useReadability = document.getElementById('useReadability').checked ? 'true' : 'false';
+            const response = await fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `url=${encodeURIComponent(url)}&use_readability=${useReadability}`,
+            });
+            const result = await response.json();
+            document.getElementById('downloadResult').innerText = `Time taken: ${result.time_taken} seconds\nContent: ${result.content}`;
+        }
+
+        async function submitSearchForm(event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            const useReadability = document.getElementById('searchUseReadability').checked ? 'true' : 'false';
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `query=${encodeURIComponent(query)}&use_readability=${useReadability}`,
+            });
+            const result = await response.json();
+            document.getElementById('searchResult').innerText = `Time taken: ${result.time_taken} seconds\nResults: ${JSON.stringify(result.results, null, 2)}`;
+        }
+
+        async function submitCrawlForm(event) {
+            event.preventDefault();
+            const url = document.getElementById('crawlUrl').value;
+            const useReadability = document.getElementById('crawlUseReadability').checked ? 'true' : 'false';
+            const limit = document.getElementById('crawlLimit').value;
+            const response = await fetch('/crawl', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `url=${encodeURIComponent(url)}&use_readability=${useReadability}&limit=${limit}`,
+            });
+            const result = await response.json();
+            document.getElementById('crawlResult').innerText = `Crawl job started with ID: ${result.job_id}`;
+            document.getElementById('jobIdToCopy').value = result.job_id;
+        }
+
+        async function checkJobStatus(event) {
+            event.preventDefault();
+            const jobId = document.getElementById('jobId').value;
+            const response = await fetch(`/job/${jobId}`);
+            const result = await response.json();
+            document.getElementById('jobStatus').innerText = `Status: ${result.status}\nProgress: ${result.progress}/${result.limit}\nTime taken: ${result.time_taken} seconds\nResults: ${JSON.stringify(result.results, null, 2)}`;
+        }
+
+        function copyJobId() {
+            const jobId = document.getElementById('jobIdToCopy').value;
+            navigator.clipboard.writeText(jobId).then(() => {
+                alert('Job ID copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy job ID: ', err);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>URL Downloader</h1>
+    <form onsubmit="submitDownloadForm(event)">
+        <label for="url">Enter URL:</label>
+        <input type="text" id="url" name="url" required>
+        <label for="useReadability">Use Readability:</label>
+        <input type="checkbox" id="useReadability" name="useReadability">
+        <button type="submit">Download</button>
+    </form>
+    <p id="downloadResult"></p>
+
+    <h1>Search</h1>
+    <form onsubmit="submitSearchForm(event)">
+        <label for="query">Enter Query:</label>
+        <input type="text" id="query" name="query" required>
+        <label for="searchUseReadability">Use Readability:</label>
+        <input type="checkbox" id="searchUseReadability" name="searchUseReadability">
+        <button type="submit">Search</button>
+    </form>
+    <p id="searchResult"></p>
+
+    <h1>Crawl</h1>
+    <form onsubmit="submitCrawlForm(event)">
+        <label for="crawlUrl">Enter URL:</label>
+        <input type="text" id="crawlUrl" name="crawlUrl" required>
+        <label for="crawlUseReadability">Use Readability:</label>
+        <input type="checkbox" id="crawlUseReadability" name="crawlUseReadability">
+        <label for="crawlLimit">Limit:</label>
+        <input type="number" id="crawlLimit" name="crawlLimit" value="10" required>
+        <button type="submit">Crawl</button>
+    </form>
+    <p id="crawlResult"></p>
+    <input type="text" id="jobIdToCopy" readonly>
+    <button onclick="copyJobId()">Copy Job ID</button>
+
+    <h1>Check Job Status</h1>
+    <form onsubmit="checkJobStatus(event)">
+        <label for="jobId">Enter Job ID:</label>
+        <input type="text" id="jobId" name="jobId" required>
+        <button type="submit">Check Status</button>
+    </form>
+    <p id="jobStatus"></p>
+</body>
+</html>
