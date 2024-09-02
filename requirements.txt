@@ -1,7 +1,7 @@
-fastapi==0.68.2
-uvicorn==0.15.0
-aiohttp==3.8.1
-html2text==2020.1.16
-selectolax==0.2.10
-readabilipy==0.1.0
-jinja2==3.0.1
+fastapi
+uvicorn
+aiohttp
+html2text
+selectolax
+readabilipy
+jinja2
